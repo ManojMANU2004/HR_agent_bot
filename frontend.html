@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HR Assistant Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .chat-container {
+            background: #ffffff;
+            width: 400px;
+            max-width: 90%;
+            height: 600px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: #2563eb;
+            color: #fff;
+            padding: 16px;
+            font-weight: 600;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #f9fafb;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            line-height: 1.4;
+        }
+
+        .user-msg {
+            background: #2563eb;
+            color: #fff;
+            align-self: flex-end;
+        }
+
+        .bot-msg {
+            background: #e5e7eb;
+            color: #111827;
+            align-self: flex-start;
+        }
+
+        .chat-input {
+            display: flex;
+            border-top: 1px solid #e5e7eb;
+            align-items: center;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 14px 16px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+        }
+
+        .mic-btn {
+            background: #ffffff;
+            border: none;
+            font-size: 22px;
+            padding: 0 10px;
+            cursor: pointer;
+        }
+
+        .send-btn {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 0 20px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="chat-header">HR Assistant</div>
+
+        <div class="chat-messages" id="chatMessages"></div>
+
+        <div class="chat-input">
+            <input type="text" id="questionInput" placeholder="Type your question..." />
+            <button class="mic-btn" id="micBtn">🎤</button>
+            <button class="send-btn" id="askBtn">Send</button>
+        </div>
+    </div>
+
+<script>
+    const askBtn = document.getElementById("askBtn");
+    const questionInput = document.getElementById("questionInput");
+    const chatMessages = document.getElementById("chatMessages");
+    const micBtn = document.getElementById("micBtn");
+
+    function addMessage(text, type) {
+        const msgDiv = document.createElement("div");
+        msgDiv.textContent = text;
+        msgDiv.classList.add("message");
+        msgDiv.classList.add(type === "user" ? "user-msg" : "bot-msg");
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    askBtn.addEventListener("click", async () => {
+        const question = questionInput.value.trim();
+        if (!question) return;
+
+        addMessage(question, "user");
+        questionInput.value = "";
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/ask", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ question })
+            });
+
+            const data = await response.json();
+            addMessage(data.answer, "bot");
+
+        } catch (err) {
+            console.error(err);
+            addMessage("Error contacting server.", "bot");
+        }
+    });
+
+    questionInput.addEventListener("keypress", e => {
+        if (e.key === "Enter") askBtn.click();
+    });
+
+    // 🎤 Speech Recognition
+    let recognition;
+    if ("webkitSpeechRecognition" in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.continuous = false;
+
+        recognition.onresult = event => {
+            const text = event.results[0][0].transcript;
+            questionInput.value = text;
+            askBtn.click();
+        };
+
+        recognition.onerror = err => {
+            console.error("Speech error:", err);
+        };
+    }
+
+    micBtn.addEventListener("click", () => {
+        if (!recognition) {
+            alert("Voice input not supported in this browser");
+            return;
+        }
+        recognition.start();
+    });
+</script>
+
+</body>
+</html>
