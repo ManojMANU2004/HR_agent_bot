@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: hr-backend
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn api:app --host 0.0.0.0 --port 8000"
+    numInstances: 1
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: EMBEDDINGS_MODEL
+        value: nomic-embed-text
+      - key: LLM_MODEL
+        value: llama-3.1-8b-instant
+      - key: CHROMA_DB
+        value: /opt/render/project/src/db
