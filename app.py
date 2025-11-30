@@ -1,44 +1,38 @@
 import streamlit as st
-from api import ask  # your FastAPI logic; we'll call ask() function directly
-from pydantic import BaseModel
+import requests
 
-# -------------------------------
-# Streamlit Page Setup
-# -------------------------------
+BACKEND_URL = "https://hr-agent-bot.onrender.com/ask"
+
 st.set_page_config(page_title="HR Assistant", page_icon="🤖")
 st.title("🤖 HR Assistant Chatbot")
-st.write("Ask me anything about HR policies, leaves, benefits, etc.")
+st.write("Ask me anything about HR policies, leaves, benefits, compensation, etc.")
 
-# -------------------------------
-# Session State for Chat History
-# -------------------------------
 if "history" not in st.session_state:
     st.session_state.history = []
 
-# -------------------------------
-# Input from User
-# -------------------------------
 user_input = st.text_input("Type your question here:")
 
 if st.button("Send") and user_input.strip():
-    # Create dummy Query model (same as in api.py)
-    class Query(BaseModel):
-        question: str
-
-    query_model = Query(question=user_input.strip())
+    payload = {"question": user_input.strip()}
 
     with st.spinner("Thinking..."):
-        response = ask(query_model)  # call api.py function directly
+        try:
+            response = requests.post(BACKEND_URL, json=payload, timeout=60)
+            answer = response.json().get("answer", "⚠ No response received.")
+        except Exception as e:
+            answer = f"⚠ Error contacting backend: {e}"
 
-    # Add messages to chat history
     st.session_state.history.append(("user", user_input))
-    st.session_state.history.append(("bot", response["answer"]))
+    st.session_state.history.append(("bot", answer))
 
-# -------------------------------
-# Display Chat History
-# -------------------------------
 for sender, message in st.session_state.history:
     if sender == "user":
-        st.markdown(f'<div style="background:#2563eb;color:white;padding:10px;border-radius:10px;margin:5px 0;">{message}</div>', unsafe_allow_html=True)
+        st.markdown(
+            f"<div style='background:#1e88e5;color:white;padding:10px;border-radius:10px;margin:5px 0;'>{message}</div>",
+            unsafe_allow_html=True,
+        )
     else:
-        st.markdown(f'<div style="background:#e5e7eb;color:black;padding:10px;border-radius:10px;margin:5px 0;">{message}</div>', unsafe_allow_html=True)
+        st.markdown(
+            f"<div style='background:#eeeeee;color:black;padding:10px;border-radius:10px;margin:5px 0;'>{message}</div>",
+            unsafe_allow_html=True,
+        )

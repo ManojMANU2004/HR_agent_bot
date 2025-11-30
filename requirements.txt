@@ -1,14 +1,2 @@
-fastapi
-uvicorn
-python-dotenv
-pydantic
-langchain
-langchain-core
-langchain-community
-langchain-chroma
-langchain-groq
-chromadb
-groq
-numpy
-pandas
-tiktoken
+streamlit
+requests
