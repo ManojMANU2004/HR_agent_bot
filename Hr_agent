@@ -1,0 +1,52 @@
+┌────────────────────────────────────────────┐
+│                Frontend (UI)               │
+│  - HTML, CSS, JavaScript                   │
+│  - Voice input (Web Speech API)            │
+│  - Calls backend via fetch()               │
+└───────────────▲────────────────────────────┘
+                │  POST /ask (JSON)
+                │  Question text
+                ▼
+┌────────────────────────────────────────────┐
+│                  FastAPI API               │
+│  - /ask endpoint                            │
+│  - CORS enabled                              │
+│  - Validates input                           │
+│  - Passes question to RAG pipeline           │
+└──────────────▲──────────────────────────────┘
+               │
+               │ Query
+               ▼
+┌────────────────────────────────────────────┐
+│           Retrieval (ChromaDB)             │
+│   - Vector store with HR documents         │
+│   - Embeddings created earlier             │
+│   - Similarity search retrieves context    │
+└──────────────▲──────────────────────────────┘
+               │
+               │ Context + Question
+               ▼
+┌────────────────────────────────────────────┐
+│        LLM (Groq LLaMA 3.3)                │
+│   - Extremely fast inference                │
+│   - Generates answer using RAG prompt       │
+│   - Returns structured text output          │
+└──────────────▲──────────────────────────────┘
+               │
+               │ Answer text
+               ▼
+┌────────────────────────────────────────────┐
+│                FastAPI API                 │
+│        Returns JSON response:               │
+│          { "answer": "..." }               │
+└──────────────▲──────────────────────────────┘
+               │
+               │ JSON Response
+               ▼
+┌────────────────────────────────────────────┐
+│               Frontend UI                  │
+│  - Displays chatbot bubble                  │
+│  - Speech output (optional)                │
+│  - Smooth chat flow                        │
+└────────────────────────────────────────────┘
+
